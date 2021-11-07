@@ -103,6 +103,8 @@ void *process_client(void *ptr) {
             sent = write(conn->sock, (void *)buffer, idx);
             memmove(buffer, buffer + idx, sizeof(buffer) - idx);
             cursor = 0;
+
+            fprintf(stdout, "write %d\n", idx);
         }
     }
 
