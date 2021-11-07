@@ -1,7 +1,7 @@
 .PHONY: build
 build: src/server.c
 	@mkdir -p target
-	@clang src/server.c -o target/server -Wall -pthread
+	@clang src/server.c -o target/server -Wall -Werror -pthread
 
 .PHONY: serve
 serve: build
@@ -16,3 +16,7 @@ test: build
 .PHONY: clean
 clean:
 	@rm -rf target/
+
+.PHONY: fmt
+fmt:
+	@clang-format -i src/server.c
