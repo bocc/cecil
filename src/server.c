@@ -96,15 +96,26 @@ void *process_client(void *ptr) {
         }
         cursor += n;
         idx = check_newline(buffer, cursor);
-        fprintf(stdout, "received: %sidx: %d\ncursor: %d\n", buffer, idx, cursor);
 
-        if (idx >= 0) {
-            reverse(buffer, (unsigned)idx);
-            sent = write(conn->sock, (void *)buffer, idx);
-            memmove(buffer, buffer + idx, sizeof(buffer) - idx);
-            cursor = 0;
+        while (idx >= 0) {
+            if (idx > 0) {
+                // reverse and send an idx-sized chunk
+                reverse(buffer, (unsigned)idx);
+                sent = write(conn->sock, (void *)buffer, idx);
+                memmove(buffer, buffer + idx, sizeof(buffer) - idx);
+                cursor -= idx;
+            } else {
+                // next char is newline, skip it
+                // speed is a non-goal, so
+                memmove(buffer, buffer + 1, sizeof(buffer) - 1);
+                cursor -= 1;
+            }
 
-            fprintf(stdout, "write %d\n", idx);
+            if (cursor <= 0) {
+                break;
+            }
+
+            idx = check_newline(buffer, cursor);
         }
     }
 
