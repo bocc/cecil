@@ -1,8 +1,9 @@
 # cecil - a TCP server for echoing reversed lines
 
 ## Usage
-Connect to it via TCP, send it \n delimited bytes, and you'll receive them reversed.
+Connect to it via TCP, send it `\n` delimited bytes, and you'll receive them reversed. (You won't get your `\n` characters back, though.)
 When you're done, close the connection.
+
 
 ## Make Targets
 - build (requires `clang`)
