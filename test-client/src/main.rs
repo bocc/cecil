@@ -1,24 +1,40 @@
 use std::{
     io::{Read, Write},
-    net::TcpStream,
+    net::{Shutdown, SocketAddr, TcpStream},
+    str::FromStr,
+    time::Duration,
 };
 
 fn main() -> std::io::Result<()> {
-    test_client()
+    let handles = (1..10)
+        .map(|_| std::thread::spawn(test_client))
+        .collect::<Vec<_>>();
+
+    for h in handles.into_iter() {
+        match h.join() {
+            Ok(res) => assert!(res.is_ok(), res),
+            Err(e) => assert!(false, e),
+        }
+    }
+
+    Ok(())
 }
 
 fn test_client() -> std::io::Result<()> {
     let mut buf: [u8; 200] = [0; 200];
     let testcases = vec![
         (b"1234\n".to_vec(), b"4321".to_vec()),
-        (b"1234\n4567\n89\n".to_vec(), b"4321\n7654\n98\n".to_vec()),
-        (b"1234\n4567\n\n\n89\n".to_vec(), b"4321\n7654\n98\n".to_vec()),
+        (b"1234\n4567\n89\n".to_vec(), b"4321765498".to_vec()),
+        (b"1234\n4567\n\n\n89\n".to_vec(), b"4321765498".to_vec()),
     ];
 
-    let mut stream = TcpStream::connect("localhost:8888")?;
+    let socket = SocketAddr::from_str("127.0.0.1:8888").expect("invalid address");
+    let mut stream = TcpStream::connect_timeout(&socket, Duration::from_secs(2))?;
 
     for (tc, expected) in testcases.into_iter() {
         stream.write_all(&tc)?;
+
+        std::thread::sleep(Duration::from_millis(100));
 
         for expected in expected.split(|&c| c == b'\n').filter(|&s| !s.is_empty()) {
             let n = stream.read(&mut buf)?;
@@ -30,5 +46,5 @@ fn test_client() -> std::io::Result<()> {
         }
     }
 
-    Ok(())
+    stream.shutdown(Shutdown::Both)
 }
