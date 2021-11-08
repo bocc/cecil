@@ -15,8 +15,13 @@ test: build
   
 .PHONY: clean
 clean:
+	@cargo clean --manifest-path=test-client/Cargo.toml
 	@rm -rf target/
 
 .PHONY: fmt
 fmt:
 	@clang-format -i src/server.c
+
+.PHONY: leakcheck
+leakcheck: build
+	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=target/valgrind_report.txt ./target/server

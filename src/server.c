@@ -45,6 +45,9 @@ int main(int argc, char **argv) {
         connection->sock = accept(sock, &connection->addr, &connection->addr_len);
         fprintf(stdout, "connection accepted\n");
         if (connection->sock > 0) {
+            // it is unclear if pthread_detach actually frees connection.
+            // I attempted to stress it a bit, and it has shown no measurable increas in memory
+            // consumption for a few 10ks of small clients. also, Valgrind's results are unclear
             pthread_create(&thread_id, NULL, process_client, (void *)connection);
             pthread_detach(thread_id);
         } else {
