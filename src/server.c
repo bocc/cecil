@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #define PORT 8888
+#define BUFFER_SIZE ((unsigned)2000)
 
 typedef struct {
     int sock;
@@ -46,8 +47,8 @@ int main(int argc, char **argv) {
         fprintf(stdout, "connection accepted\n");
         if (connection->sock > 0) {
             // it is unclear if pthread_detach actually frees connection.
-            // I attempted to stress it a bit, and it has shown no measurable increas in memory
-            // consumption for a few 10ks of small clients. also, Valgrind's results are unclear
+            // I attempted to stress it a bit, and it has shown no measurable increase in memory
+            // consumption for a few 10ks of small clients. also, Valgrind's results are unclear :(
             pthread_create(&thread_id, NULL, process_client, (void *)connection);
             pthread_detach(thread_id);
         } else {
@@ -79,7 +80,7 @@ int bind_to_port(uint16_t port) {
 }
 
 void *process_client(void *ptr) {
-    char buffer[2000] = {0};
+    char buffer[BUFFER_SIZE] = {0};
     unsigned cursor = 0;
     int n = 0;
     int idx = 0;

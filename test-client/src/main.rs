@@ -34,16 +34,16 @@ fn test_client() -> std::io::Result<()> {
     for (tc, expected) in testcases.into_iter() {
         stream.write_all(&tc)?;
 
+        // this is questionable
         std::thread::sleep(Duration::from_millis(100));
 
-        for expected in expected.split(|&c| c == b'\n').filter(|&s| !s.is_empty()) {
-            let n = stream.read(&mut buf)?;
+        let n = stream.read(&mut buf)?;
 
-            let expected = String::from_utf8(expected.to_vec()).unwrap();
-            let received = String::from_utf8(buf[..n].to_vec()).unwrap();
+        let expected = String::from_utf8(expected.to_vec()).unwrap();
+        let received = String::from_utf8(buf[..n].to_vec()).unwrap();
+        assert_eq!(expected, received);
 
-            println!("expected: {}, got: {}", expected, received);
-        }
+        println!("expected: {}, got: {}", expected, received);
     }
 
     stream.shutdown(Shutdown::Both)
